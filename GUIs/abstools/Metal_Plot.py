@@ -21,7 +21,7 @@ from pkg_resources import resource_filename
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QPalette, QColor
-
+from statistics import mean
 from astropy.table import Table
 from astropy.io import ascii
 
@@ -62,6 +62,9 @@ HELP =  '''
 
             m           : Measure EW/N for active subplot
             M           : Measure EW/N for ALL subplots
+            i/o         : Zoom in/out along x-axis
+            I/O         : Zoom in/out along y-axis
+            l/r         : Move left and right in velocity on LHS
             
             1/2/0 (RHS only): flag absorber as
                               (0) positive detection
@@ -93,7 +96,7 @@ def shift2vel(z1,z2):
 def grab_intervening_linelist(filename,z_gal,wrest_galaxy,wavelength):
     import pandas as pd 
     #s=ascii.read(filename)
-    s=pd.read_csv(filename,sep=' ')
+    s=pd.read_csv(filename,sep=',',encoding='latin1')
     ion=s['Name'].values#s['col1']
     wobs=s['Wave_obs'].values #s['col3']
     zobs=s['Zabs'].values#s['col4']
@@ -228,7 +231,7 @@ class mainWindow(QtWidgets.QTabWidget):
         
         self.main_layout.addLayout(self.top_layout,stretch=1)
         self.main_layout.addWidget(self.canvas[0],stretch=8)
-        self.main_layout.addLayout(self.bot_layout,stretch=0.5)
+        self.main_layout.addLayout(self.bot_layout,stretch=1) #0.5
         self.tabs[self.page].setLayout(self.main_layout)
         
         
@@ -411,8 +414,61 @@ class mainWindow(QtWidgets.QTabWidget):
                 Plotting(self,self.Lidx,modify=True)
             else:
                 print('click on a transition window first')
-                
-        #evaluate last limit subplot
+        # Added by saloni
+        if event.key == ']':
+            if self.Lidx is not None:
+                key_idx = self.page*6+self.Lidx   
+
+                current_xlim = self.ions[self.keys[key_idx]]['window_lim']
+                new_xlim = [current_xlim[0] * 0.9, current_xlim[1] * 1.1]  # Adjust zoom factor as needed
+                self.ions[self.keys[key_idx]]['window_lim']=new_xlim
+                Plotting(self,self.Lidx,modify=True)   
+
+        if event.key == '[':
+            if self.Lidx is not None:
+                key_idx = self.page*6+self.Lidx   
+
+                current_xlim = self.ions[self.keys[key_idx]]['window_lim']
+                new_xlim = [current_xlim[0] * 1.1, current_xlim[1] * 0.9]  # Adjust zoom factor as needed
+                self.ions[self.keys[key_idx]]['window_lim']=new_xlim
+                Plotting(self,self.Lidx,modify=True)   
+
+        if event.key == 'i':
+            if self.Lidx is not None:
+                key_idx = self.page*6+self.Lidx   
+
+                current_xlim = self.ions[self.keys[key_idx]]['window_lim']
+                new_xlim = [current_xlim[0] * 0.9, current_xlim[1] * 0.9]  # Adjust zoom factor as needed
+                self.ions[self.keys[key_idx]]['window_lim']=new_xlim
+                Plotting(self,self.Lidx,modify=True)  
+
+        if event.key == 'o':
+            if self.Lidx is not None:
+                key_idx = self.page*6+self.Lidx   
+
+                current_xlim = self.ions[self.keys[key_idx]]['window_lim']
+                new_xlim = [current_xlim[0] * 1.1, current_xlim[1] * 1.1]  # Adjust zoom factor as needed
+                self.ions[self.keys[key_idx]]['window_lim']=new_xlim
+                Plotting(self,self.Lidx,modify=True)  
+
+        if event.key == 'I':
+            if self.Lidx is not None:
+                key_idx = self.page*6+self.Lidx   
+
+                current_ylim = self.ions[self.keys[key_idx]]['y_lim']
+                new_ylim = [current_ylim[0] * 0.9, current_ylim[1] * 0.9]  # Adjust zoom factor as needed
+                self.ions[self.keys[key_idx]]['y_lim']=new_ylim
+                Plotting(self,self.Lidx,modify=True)         
+
+        if event.key == 'O':
+            if self.Lidx is not None:
+                key_idx = self.page*6+self.Lidx   
+
+                current_ylim = self.ions[self.keys[key_idx]]['y_lim']
+                new_ylim = [current_ylim[0] * 1.1, current_ylim[1] * 1.1]  # Adjust zoom factor as needed
+                self.ions[self.keys[key_idx]]['y_lim']=new_ylim
+                Plotting(self,self.Lidx,modify=True) 
+
         if event.key == 'm':
             key_idx = self.page*6+self.Ridx
             EW(self,self.page,self.Ridx,self.ions[self.keys[key_idx]]['EWlims'])
@@ -523,8 +579,13 @@ class Plotting:
         #---------------Define variables for readability--------------#
         vel = parent.ions[parent.keys[key_idx]]['vel']
         wave = parent.ions[parent.keys[key_idx]]['wave']
+        wave_p = parent.ions[parent.keys[key_idx]]['wave_p']
         error = parent.ions[parent.keys[key_idx]]['error']
         flux = parent.ions[parent.keys[key_idx]]['flux']
+        vel_p = parent.ions[parent.keys[key_idx]]['vel_p']
+        wave_p = parent.ions[parent.keys[key_idx]]['wave_p']
+        error_p = parent.ions[parent.keys[key_idx]]['error_p']
+        flux_p = parent.ions[parent.keys[key_idx]]['flux_p']
         weight = parent.ions[parent.keys[key_idx]]['weight']
         name = parent.ions[parent.keys[key_idx]]['name']
         #L = parent.ions[parent.keys[key_idx]].L
@@ -535,6 +596,7 @@ class Plotting:
         EWlims = parent.ions[parent.keys[key_idx]]['EWlims']
         lam_0=parent.ions[parent.keys[key_idx]]['lam_0']
         fvals=parent.ions[parent.keys[key_idx]]['f']
+        y_lim = parent.ions[parent.keys[key_idx]]['y_lim']
 
 
         #--------------------------------------------------------------#
@@ -544,8 +606,11 @@ class Plotting:
                 #re-eval continuum
                 parent.ions[parent.keys[key_idx]]['pco']=L.Legendre.fit(wave[wc],flux[wc],order,w=weight[wc])
                 parent.ions[parent.keys[key_idx]]['cont'] = parent.ions[parent.keys[key_idx]]['pco'](wave)
+                parent.ions[parent.keys[key_idx]]['cont_p'] = parent.ions[parent.keys[key_idx]]['pco'](wave_p)
+
                 cont = parent.ions[parent.keys[key_idx]]['cont']
-                
+                cont_p = parent.ions[parent.keys[key_idx]]['cont_p']
+
                 #gray_idx is to avoid line plotted through spectra from discontinuity in flux/vel/err from wc mask.
                 #uses np.diff to find where wc (true/false array) changes and plots the line segments instead of the full line with missing values
                 if wc[0] == True:
@@ -554,25 +619,29 @@ class Plotting:
                     gray_idx = np.where(np.diff(wc,prepend=np.nan))[0]
                     
                 parent.axesL[parent.page][ii].clear()
-                parent.axesL[parent.page][ii].step(vel,flux,color='k',where='mid');parent.axesL[parent.page][ii].step(vel,error,color='r',where='mid')
-                parent.axesL[parent.page][ii].step(vel,cont,color='b',where='mid')
+                # made changes here -> Saloni - not plotting negative flux or error values to improve visibility
+                parent.axesL[parent.page][ii].step(vel_p[(flux_p>0)&(error_p>0)],flux_p[(flux_p>0)&(error_p>0)],color='k',where='mid');parent.axesL[parent.page][ii].step(vel_p[(flux_p>0)&(error_p>0)],error_p[(flux_p>0)&(error_p>0)],color='r',where='mid')
+                parent.axesL[parent.page][ii].step(vel[(flux>0)&(error>0)],cont[(flux>0)&(error>0)],color='b',where='mid')
                 for zz in range(int(len(gray_idx)/2)):
                     #gray_idx = gray_idx-1
-                    parent.axesL[parent.page][ii].step(vel[gray_idx[zz*2]:gray_idx[2*zz+1]],flux[gray_idx[2*zz]:gray_idx[2*zz+1]],vel[gray_idx[2*zz]:gray_idx[2*zz+1]],error[gray_idx[2*zz]:gray_idx[2*zz+1]],where='mid',color='lightgray',linewidth=1.3,alpha=1)
+                    vel_gray = vel[gray_idx[zz*2]:gray_idx[2*zz+1]]
+                    flux_gray = flux[gray_idx[zz*2]:gray_idx[2*zz+1]]
+                    error_gray = error[gray_idx[zz*2]:gray_idx[2*zz+1]]
+                    parent.axesL[parent.page][ii].step(vel_gray[(flux_gray>0)&(error_gray>0)],flux_gray[(flux_gray>0)&(error_gray>0)],vel_gray[(flux_gray>0)&(error_gray>0)],error_gray[(flux_gray>0)&(error_gray>0)],where='mid',color='lightgray',linewidth=1.3,alpha=1)
 
             #clear axes to redraw modifications
             parent.axesR[parent.page][ii].clear()
 
 
             #replot right (flux; error)
-            parent.axesR[parent.page][ii].step(vel,flux/cont,color='k',where='mid');parent.axesR[parent.page][ii].step(vel,error/cont,color='r',where='mid')
+            parent.axesR[parent.page][ii].step(vel_p[(flux_p>0)&(error_p>0)],flux_p[(flux_p>0)&(error_p>0)]/cont_p[(flux_p>0)&(error_p>0)],color='k',where='mid');parent.axesR[parent.page][ii].step(vel_p[(flux_p>0)&(error_p>0)],error_p[(flux_p>0)&(error_p>0)]/cont_p[(flux_p>0)&(error_p>0)],color='r',where='mid')
             parent.axesR[parent.page][ii].axhline(y=1,xmin=window_lim[0],xmax=window_lim[1],ls='--',c='b')
             
 
             #clear y ticks and label plots
             parent.axesL[parent.page][ii].set_yticks([]); #parent.axesR[i][ii].set_yticks([])
             parent.axesL[parent.page][ii].set_ylabel(name); parent.axesR[parent.page][ii].set_ylabel(name)
-
+            parent.axesL[parent.page][ii].set_ylim(y_lim)
 
             #set axes bounds
             parent.axesL[parent.page][ii].set_xlim(window_lim); parent.axesR[parent.page][ii].set_xlim(window_lim)

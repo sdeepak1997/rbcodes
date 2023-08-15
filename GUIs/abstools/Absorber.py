@@ -34,7 +34,7 @@ class Absorber:
             ion_dict['name'] = line_dat['name']
             ion_dict['gamma'] = line_dat['gamma']
             ion_dict['z'] = z
-            ion_dict['window_lim'] = window_lim 
+            ion_dict['window_lim'] = window_lim
 
             '''Shifting to vel-space centered on lam_o'''
             ion_dict['lam_0_z'] = ion_dict['lam_0']*(1+z)
@@ -42,8 +42,13 @@ class Absorber:
 
             '''create window for flux,wave,error based on max and min velocity'''
             window = (ion_dict['vel']>window_lim[0]) & (ion_dict['vel']<window_lim[1])
+            window_p = (ion_dict['vel']>window_lim[0]-500) & (ion_dict['vel']<window_lim[1]+500)
+            vel_p = ion_dict['vel']
             ion_dict['flux'] = flux[window]; ion_dict['wave']=wave[window]
             ion_dict['error'] = error[window]; ion_dict['vel'] = ion_dict['vel'][window]
+            ion_dict['flux_p'] = flux[window_p]; ion_dict['wave_p']=wave[window_p]
+            ion_dict['error_p'] = error[window_p]; ion_dict['vel_p'] = vel_p[window_p]
+            ion_dict['y_lim'] = [min(error),max(flux)]
 
             '''Initial Polyfit assuming a masked region of -200:200 and polyorder=4
             cont= continuum, pco= polynomial coefficients for cont fitting; weight= parameter to fit polys
@@ -67,7 +72,7 @@ class Absorber:
     
     
     
-    def __init__(self,z,wave,flux,error,lines=None,mask_init=[-200,200],window_lim=[-1000,1000],load_file = False,nofrills=False):
+    def __init__(self,z,wave,flux,error,lines=None,mask_init=[-200,200],window_lim=[-500,500],load_file = False,nofrills=False):
         mask = mask_init
         self.z =z
         self.ions = {}
