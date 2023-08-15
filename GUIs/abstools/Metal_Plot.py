@@ -62,9 +62,9 @@ HELP =  '''
 
             m           : Measure EW/N for active subplot
             M           : Measure EW/N for ALL subplots
-            i/o         : Zoom in/out along x-axis
-            I/O         : Zoom in/out along y-axis
-            l/r         : Move left and right in velocity on LHS
+            x/X         : Zoom in/out along x-axis
+            y/Y         : Zoom in/out along y-axis
+            [,]         : Move left and right in velocity on LHS
             
             1/2/0 (RHS only): flag absorber as
                               (0) positive detection
@@ -433,7 +433,7 @@ class mainWindow(QtWidgets.QTabWidget):
                 self.ions[self.keys[key_idx]]['window_lim']=new_xlim
                 Plotting(self,self.Lidx,modify=True)   
 
-        if event.key == 'i':
+        if event.key == 'x':
             if self.Lidx is not None:
                 key_idx = self.page*6+self.Lidx   
 
@@ -442,7 +442,7 @@ class mainWindow(QtWidgets.QTabWidget):
                 self.ions[self.keys[key_idx]]['window_lim']=new_xlim
                 Plotting(self,self.Lidx,modify=True)  
 
-        if event.key == 'o':
+        if event.key == 'X':
             if self.Lidx is not None:
                 key_idx = self.page*6+self.Lidx   
 
@@ -451,7 +451,7 @@ class mainWindow(QtWidgets.QTabWidget):
                 self.ions[self.keys[key_idx]]['window_lim']=new_xlim
                 Plotting(self,self.Lidx,modify=True)  
 
-        if event.key == 'I':
+        if event.key == 'y':
             if self.Lidx is not None:
                 key_idx = self.page*6+self.Lidx   
 
@@ -460,7 +460,7 @@ class mainWindow(QtWidgets.QTabWidget):
                 self.ions[self.keys[key_idx]]['y_lim']=new_ylim
                 Plotting(self,self.Lidx,modify=True)         
 
-        if event.key == 'O':
+        if event.key == 'Y':
             if self.Lidx is not None:
                 key_idx = self.page*6+self.Lidx   
 
