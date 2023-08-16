@@ -18,6 +18,7 @@ flux; wave; error; linelist; redshift; bin
 from IGM import rb_setline as rb_setline
 import numpy as np
 import numpy.polynomial.legendre as L
+from statistics import mean
 c =  299792.458
 
 class Absorber:
@@ -35,6 +36,7 @@ class Absorber:
             ion_dict['gamma'] = line_dat['gamma']
             ion_dict['z'] = z
             ion_dict['window_lim'] = window_lim
+            ion_dict['window_lim_p'] = [-500,500]
 
             '''Shifting to vel-space centered on lam_o'''
             ion_dict['lam_0_z'] = ion_dict['lam_0']*(1+z)
@@ -42,12 +44,8 @@ class Absorber:
 
             '''create window for flux,wave,error based on max and min velocity'''
             window = (ion_dict['vel']>window_lim[0]) & (ion_dict['vel']<window_lim[1])
-            window_p = (ion_dict['vel']>window_lim[0]-500) & (ion_dict['vel']<window_lim[1]+500)
-            vel_p = ion_dict['vel']
             ion_dict['flux'] = flux[window]; ion_dict['wave']=wave[window]
             ion_dict['error'] = error[window]; ion_dict['vel'] = ion_dict['vel'][window]
-            ion_dict['flux_p'] = flux[window_p]; ion_dict['wave_p']=wave[window_p]
-            ion_dict['error_p'] = error[window_p]; ion_dict['vel_p'] = vel_p[window_p]
             ion_dict['y_lim'] = [min(error),max(flux)]
 
             '''Initial Polyfit assuming a masked region of -200:200 and polyorder=4
@@ -57,7 +55,7 @@ class Absorber:
             lets also give each ion object the Legendre function for ease of use during plotting'''
 
             if nofrills==False:
-                ion_dict['wc'] = ((ion_dict['vel']<mask[0])|(ion_dict['vel']>mask[1])) &(ion_dict['error'] != 0) #error != 0 is a bad pixel mask
+                ion_dict['wc'] = ((ion_dict['vel']<mask[0])|(ion_dict['vel']>mask[1]))&(ion_dict['vel']>-500)&(ion_dict['vel']<500)&(ion_dict['error'] != 0) #error != 0 is a bad pixel mask
                 ion_dict['weight'] = 1/(ion_dict['error']**2)
                 ion_dict['order'] = 4 #order of poly fit
                 ion_dict['pco']=L.Legendre.fit(ion_dict['wave'][ion_dict['wc']],ion_dict['flux'][ion_dict['wc']],ion_dict['order'],w=ion_dict['weight'][ion_dict['wc']])
@@ -72,7 +70,7 @@ class Absorber:
     
     
     
-    def __init__(self,z,wave,flux,error,lines=None,mask_init=[-200,200],window_lim=[-500,500],load_file = False,nofrills=False):
+    def __init__(self,z,wave,flux,error,lines=None,mask_init=[-200,200],window_lim=[-1000,1000],load_file = False,nofrills=False):
         mask = mask_init
         self.z =z
         self.ions = {}

@@ -419,36 +419,36 @@ class mainWindow(QtWidgets.QTabWidget):
             if self.Lidx is not None:
                 key_idx = self.page*6+self.Lidx   
 
-                current_xlim = self.ions[self.keys[key_idx]]['window_lim']
-                new_xlim = [current_xlim[0] * 0.9, current_xlim[1] * 1.1]  # Adjust zoom factor as needed
-                self.ions[self.keys[key_idx]]['window_lim']=new_xlim
+                current_xlim = self.ions[self.keys[key_idx]]['window_lim_p']
+                new_xlim = [current_xlim[0] * 0.9, current_xlim[1] + 5]  # Adjust zoom factor as needed
+                self.ions[self.keys[key_idx]]['window_lim_p']=new_xlim
                 Plotting(self,self.Lidx,modify=True)   
 
         if event.key == '[':
             if self.Lidx is not None:
                 key_idx = self.page*6+self.Lidx   
 
-                current_xlim = self.ions[self.keys[key_idx]]['window_lim']
-                new_xlim = [current_xlim[0] * 1.1, current_xlim[1] * 0.9]  # Adjust zoom factor as needed
-                self.ions[self.keys[key_idx]]['window_lim']=new_xlim
+                current_xlim = self.ions[self.keys[key_idx]]['window_lim_p']
+                new_xlim = [current_xlim[0] * 1.1, current_xlim[1] - 5]  # Adjust zoom factor as needed
+                self.ions[self.keys[key_idx]]['window_lim_p']=new_xlim
                 Plotting(self,self.Lidx,modify=True)   
 
         if event.key == 'x':
             if self.Lidx is not None:
                 key_idx = self.page*6+self.Lidx   
 
-                current_xlim = self.ions[self.keys[key_idx]]['window_lim']
+                current_xlim = self.ions[self.keys[key_idx]]['window_lim_p']
                 new_xlim = [current_xlim[0] * 0.9, current_xlim[1] * 0.9]  # Adjust zoom factor as needed
-                self.ions[self.keys[key_idx]]['window_lim']=new_xlim
+                self.ions[self.keys[key_idx]]['window_lim_p']=new_xlim
                 Plotting(self,self.Lidx,modify=True)  
 
         if event.key == 'X':
             if self.Lidx is not None:
                 key_idx = self.page*6+self.Lidx   
 
-                current_xlim = self.ions[self.keys[key_idx]]['window_lim']
+                current_xlim = self.ions[self.keys[key_idx]]['window_lim_p']
                 new_xlim = [current_xlim[0] * 1.1, current_xlim[1] * 1.1]  # Adjust zoom factor as needed
-                self.ions[self.keys[key_idx]]['window_lim']=new_xlim
+                self.ions[self.keys[key_idx]]['window_lim_p']=new_xlim
                 Plotting(self,self.Lidx,modify=True)  
 
         if event.key == 'y':
@@ -579,19 +579,15 @@ class Plotting:
         #---------------Define variables for readability--------------#
         vel = parent.ions[parent.keys[key_idx]]['vel']
         wave = parent.ions[parent.keys[key_idx]]['wave']
-        wave_p = parent.ions[parent.keys[key_idx]]['wave_p']
         error = parent.ions[parent.keys[key_idx]]['error']
         flux = parent.ions[parent.keys[key_idx]]['flux']
-        vel_p = parent.ions[parent.keys[key_idx]]['vel_p']
-        wave_p = parent.ions[parent.keys[key_idx]]['wave_p']
-        error_p = parent.ions[parent.keys[key_idx]]['error_p']
-        flux_p = parent.ions[parent.keys[key_idx]]['flux_p']
         weight = parent.ions[parent.keys[key_idx]]['weight']
         name = parent.ions[parent.keys[key_idx]]['name']
         #L = parent.ions[parent.keys[key_idx]].L
         wc =np.array(parent.ions[parent.keys[key_idx]]['wc']&(error != 0)) #error != 0 is a bad pixel mask 
         cont = parent.ions[parent.keys[key_idx]]['cont']
         window_lim = parent.ions[parent.keys[key_idx]]['window_lim']
+        window_lim_p = parent.ions[parent.keys[key_idx]]['window_lim_p']
         order = parent.ions[parent.keys[key_idx]]['order']
         EWlims = parent.ions[parent.keys[key_idx]]['EWlims']
         lam_0=parent.ions[parent.keys[key_idx]]['lam_0']
@@ -606,21 +602,19 @@ class Plotting:
                 #re-eval continuum
                 parent.ions[parent.keys[key_idx]]['pco']=L.Legendre.fit(wave[wc],flux[wc],order,w=weight[wc])
                 parent.ions[parent.keys[key_idx]]['cont'] = parent.ions[parent.keys[key_idx]]['pco'](wave)
-                parent.ions[parent.keys[key_idx]]['cont_p'] = parent.ions[parent.keys[key_idx]]['pco'](wave_p)
 
                 cont = parent.ions[parent.keys[key_idx]]['cont']
-                cont_p = parent.ions[parent.keys[key_idx]]['cont_p']
 
                 #gray_idx is to avoid line plotted through spectra from discontinuity in flux/vel/err from wc mask.
                 #uses np.diff to find where wc (true/false array) changes and plots the line segments instead of the full line with missing values
                 if wc[0] == True:
-                    gray_idx = np.where(np.diff(wc,prepend=np.nan))[0][1:]
+                    gray_idx = np.where(np.diff(wc,prepend=np.nan,append=np.nan))[0][1:]
                 else:
-                    gray_idx = np.where(np.diff(wc,prepend=np.nan))[0]
+                    gray_idx = np.where(np.diff(wc,prepend=np.nan,append=np.nan))[0]
                     
                 parent.axesL[parent.page][ii].clear()
                 # made changes here -> Saloni - not plotting negative flux or error values to improve visibility
-                parent.axesL[parent.page][ii].step(vel_p[(flux_p>0)&(error_p>0)],flux_p[(flux_p>0)&(error_p>0)],color='k',where='mid');parent.axesL[parent.page][ii].step(vel_p[(flux_p>0)&(error_p>0)],error_p[(flux_p>0)&(error_p>0)],color='r',where='mid')
+                parent.axesL[parent.page][ii].step(vel[(flux>0)&(error>0)],flux[(flux>0)&(error>0)],color='k',where='mid');parent.axesL[parent.page][ii].step(vel[(flux>0)&(error>0)],error[(flux>0)&(error>0)],color='r',where='mid')
                 parent.axesL[parent.page][ii].step(vel[(flux>0)&(error>0)],cont[(flux>0)&(error>0)],color='b',where='mid')
                 for zz in range(int(len(gray_idx)/2)):
                     #gray_idx = gray_idx-1
@@ -634,7 +628,7 @@ class Plotting:
 
 
             #replot right (flux; error)
-            parent.axesR[parent.page][ii].step(vel_p[(flux_p>0)&(error_p>0)],flux_p[(flux_p>0)&(error_p>0)]/cont_p[(flux_p>0)&(error_p>0)],color='k',where='mid');parent.axesR[parent.page][ii].step(vel_p[(flux_p>0)&(error_p>0)],error_p[(flux_p>0)&(error_p>0)]/cont_p[(flux_p>0)&(error_p>0)],color='r',where='mid')
+            parent.axesR[parent.page][ii].step(vel[(flux>0)&(error>0)],flux[(flux>0)&(error>0)]/cont[(flux>0)&(error>0)],color='k',where='mid');parent.axesR[parent.page][ii].step(vel[(flux>0)&(error>0)],error[(flux>0)&(error>0)]/cont[(flux>0)&(error>0)],color='r',where='mid')
             parent.axesR[parent.page][ii].axhline(y=1,xmin=window_lim[0],xmax=window_lim[1],ls='--',c='b')
             
 
@@ -644,7 +638,7 @@ class Plotting:
             parent.axesL[parent.page][ii].set_ylim(y_lim)
 
             #set axes bounds
-            parent.axesL[parent.page][ii].set_xlim(window_lim); parent.axesR[parent.page][ii].set_xlim(window_lim)
+            parent.axesL[parent.page][ii].set_xlim(window_lim_p); parent.axesR[parent.page][ii].set_xlim(window_lim_p)
             parent.axesR[parent.page][ii].set_ylim([0,2.2])
 
             #set x ticks only on bottom row
