@@ -420,7 +420,7 @@ class mainWindow(QtWidgets.QTabWidget):
                 key_idx = self.page*6+self.Lidx   
 
                 current_xlim = self.ions[self.keys[key_idx]]['window_lim_p']
-                new_xlim = [current_xlim[0] * 0.9, current_xlim[1] + 5]  # Adjust zoom factor as needed
+                new_xlim = [current_xlim[0] + 5 current_xlim[1] + 5]  # Adjust zoom factor as needed
                 self.ions[self.keys[key_idx]]['window_lim_p']=new_xlim
                 Plotting(self,self.Lidx,modify=True)   
 
@@ -429,7 +429,7 @@ class mainWindow(QtWidgets.QTabWidget):
                 key_idx = self.page*6+self.Lidx   
 
                 current_xlim = self.ions[self.keys[key_idx]]['window_lim_p']
-                new_xlim = [current_xlim[0] * 1.1, current_xlim[1] - 5]  # Adjust zoom factor as needed
+                new_xlim = [current_xlim[0] - 5, current_xlim[1] - 5]  # Adjust zoom factor as needed
                 self.ions[self.keys[key_idx]]['window_lim_p']=new_xlim
                 Plotting(self,self.Lidx,modify=True)   
 
