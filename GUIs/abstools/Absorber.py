@@ -46,7 +46,7 @@ class Absorber:
             window = (ion_dict['vel']>window_lim[0]) & (ion_dict['vel']<window_lim[1])
             ion_dict['flux'] = flux[window]; ion_dict['wave']=wave[window]
             ion_dict['error'] = error[window]; ion_dict['vel'] = ion_dict['vel'][window]
-            ion_dict['y_lim'] = [min(error),max(flux)]
+            ion_dict['y_lim'] = [min(ion_dict['flux']),max(ion_dict['flux'])]
 
             '''Initial Polyfit assuming a masked region of -200:200 and polyorder=4
             cont= continuum, pco= polynomial coefficients for cont fitting; weight= parameter to fit polys

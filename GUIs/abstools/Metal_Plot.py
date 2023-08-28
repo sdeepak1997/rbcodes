@@ -592,7 +592,7 @@ class Plotting:
         EWlims = parent.ions[parent.keys[key_idx]]['EWlims']
         lam_0=parent.ions[parent.keys[key_idx]]['lam_0']
         fvals=parent.ions[parent.keys[key_idx]]['f']
-        y_lim = parent.ions[parent.keys[key_idx]]['y_lim']
+        ylims=parent.ions[parent.keys[key_idx]]['y_lim']
 
 
         #--------------------------------------------------------------#
@@ -635,10 +635,10 @@ class Plotting:
             #clear y ticks and label plots
             parent.axesL[parent.page][ii].set_yticks([]); #parent.axesR[i][ii].set_yticks([])
             parent.axesL[parent.page][ii].set_ylabel(name); parent.axesR[parent.page][ii].set_ylabel(name)
-            parent.axesL[parent.page][ii].set_ylim(y_lim)
 
             #set axes bounds
             parent.axesL[parent.page][ii].set_xlim(window_lim_p); parent.axesR[parent.page][ii].set_xlim(window_lim_p)
+            parent.axesL[parent.page][ii].set_ylim(ylims)
             parent.axesR[parent.page][ii].set_ylim([0,2.2])
 
             #set x ticks only on bottom row
