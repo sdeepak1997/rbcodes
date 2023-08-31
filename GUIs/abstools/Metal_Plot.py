@@ -65,6 +65,7 @@ HELP =  '''
             x/X         : Zoom in/out along x-axis
             y/Y         : Zoom in/out along y-axis
             [,]         : Move left and right in velocity on LHS
+            w,s         : Move up and down in flux on LHS
             
             1/2/0 (RHS only): flag absorber as
                               (0) positive detection
@@ -466,6 +467,24 @@ class mainWindow(QtWidgets.QTabWidget):
 
                 current_ylim = self.ions[self.keys[key_idx]]['y_lim']
                 new_ylim = [current_ylim[0] * 1.1, current_ylim[1] * 1.1]  # Adjust zoom factor as needed
+                self.ions[self.keys[key_idx]]['y_lim']=new_ylim
+                Plotting(self,self.Lidx,modify=True) 
+
+        if event.key == 'w':
+            if self.Lidx is not None:
+                key_idx = self.page*6+self.Lidx   
+
+                current_ylim = self.ions[self.keys[key_idx]]['y_lim']
+                new_ylim = [current_ylim[0] + 0.2, current_ylim[1] + 0.2]  # Adjust zoom factor as needed
+                self.ions[self.keys[key_idx]]['y_lim']=new_ylim
+                Plotting(self,self.Lidx,modify=True) 
+
+        if event.key == 's':
+            if self.Lidx is not None:
+                key_idx = self.page*6+self.Lidx   
+
+                current_ylim = self.ions[self.keys[key_idx]]['y_lim']
+                new_ylim = [current_ylim[0] -0.2, current_ylim[1] -0.2]  # Adjust zoom factor as needed
                 self.ions[self.keys[key_idx]]['y_lim']=new_ylim
                 Plotting(self,self.Lidx,modify=True) 
 
